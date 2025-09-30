@@ -1,27 +1,69 @@
 "use client";
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useCallback } from "react";
 import { api } from "@/lib/axios";
 import { useRouter } from "next/navigation";
 
-export function useAuth() {
-    const [user, setUser] = useState<any>(null);
+export type User = {
+    currentLevel: {
+        id: number;
+        level: number;
+        arcId: number;
+        xpRequired: number;
+        reward: string;
+        createdAt?: Date | null | undefined;
+        updatedAt?: Date | null | undefined;
+    };
+    currentArc: {
+        id: number;
+        name: string;
+        levelRequired: number;
+        createdAt?: Date | null | undefined;
+        updatedAt?: Date | null | undefined;
+    };
+    totalXp: number;
+    username: string;
+    email: string;
+    avatar?: string | null | undefined;
+    bio?: string | null | undefined;
+    id: number;
+    isAdmin: boolean;
+};
+
+export function useAuth({ redirectToLogin = false } = {}) {
+    const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
     const router = useRouter();
 
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const res = await api.get("/users/me");
-                setUser(res.data.user);
-            } catch (err) {
-                setUser(null);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const fetchUser = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        let mounted = true;
 
+        try {
+            const res = await api.get("/users/me");
+            // console.log();
+            if (mounted) setUser(res.data.data);
+        } catch (err: any) {
+            if (mounted) {
+                setUser(null);
+                setError(err?.response?.data?.message || "Failed to fetch user");
+                if (redirectToLogin) router.push("/login");
+            }
+        } finally {
+            if (mounted) setLoading(false);
+        }
+
+        return () => {
+            mounted = false;
+        };
+    }, [router, redirectToLogin]);
+
+    useEffect(() => {
         fetchUser();
-    }, []);
+    }, [fetchUser]);
 
     const logout = async () => {
         try {
@@ -33,5 +75,5 @@ export function useAuth() {
         }
     };
 
-    return { user, loading, logout };
+    return { user, loading, error, fetchUser, logout };
 }
