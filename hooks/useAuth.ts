@@ -44,8 +44,9 @@ export function useAuth({ redirectToLogin = false } = {}) {
 
         try {
             const res = await api.get("/users/me");
-            // console.log();
-            if (mounted) setUser(res.data.data);
+            // if (mounted) {
+            setUser(res.data.data);
+            // }
         } catch (err: any) {
             if (mounted) {
                 setUser(null);

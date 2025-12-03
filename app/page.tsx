@@ -26,7 +26,7 @@ export default function Home() {
                     <div>
                         <Link href="/dashboard">
                             <Button bg="#4ccd61" textColor="#000000" borderColor="#000000" shadow="#21841f">
-                                Coming soon
+                                Fight Brave
                             </Button>
                         </Link>
                         <Link href="https://github.com/callmegautam">
