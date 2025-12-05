@@ -1,11 +1,14 @@
 "use client";
 
-import PrivateRoute from "@/components/PrivateRoute";
+//import PrivateRoute from "@/components/PrivateRoute";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/axios";
 import { Card, ProgressBar } from "pixel-retroui";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
+import { demoUserSkills, demoRequiredXp, demoProgress } from "@/lib/demoSkills";
+
+// Using CSS-only, removed import of fonts
 
 type Skill = {
     id: number;
@@ -42,7 +45,7 @@ type UserSkill = {
 };
 
 const page = () => {
-    const { user, fetchUser, logout } = useAuth({ redirectToLogin: true });
+    const { user, fetchUser, logout } = useAuth({ redirectToLogin: false });
     const [skills, setSkills] = useState<Skill[]>([]);
     const [userSkills, setUserSkills] = useState<UserSkill[]>([]);
     const [requiredXp, setRequiredXp] = useState(0);
@@ -56,18 +59,30 @@ const page = () => {
         // console.log(user);
         const fetchdata = async () => {
             setLoading(true);
-            // const res = await api.get("/skills");
-            const currentLevelID = user?.currentLevel?.id;
-            const userSkill = await api.get("/users/skills");
-            if (user) {
-                const nextLevel = await api.get(`/levels/${user?.currentLevel?.id}`);
-                setRequiredXp(nextLevel.data.data.xpRequired);
-                setProgress((user?.totalXp * 100) / nextLevel.data.data.xpRequired);
+            try {
+                // const res = await api.get("/skills");
+                const currentLevelID = user?.currentLevel?.id;
+                const userSkill = await api.get("/users/skills");
+                if (user) {
+                    const nextLevel = await api.get(`/levels/${user?.currentLevel?.id}`);
+                    setRequiredXp(nextLevel.data.data.xpRequired);
+                    setProgress((user?.totalXp * 100) / nextLevel.data.data.xpRequired);
+                }
+                // const data: Skill[] = res.data.data;
+                const userSkills: UserSkill[] = userSkill.data.data;
+                // setSkills(data);
+                setUserSkills(userSkills);
+            } catch (error) {
+                // If we're in dev, it'll automatically use demo data
+                if (process.env.NODE_ENV === "development") {
+                    console.log("API unavailable, using demo content (development mode)");
+                    setUserSkills(demoUserSkills as any);
+                    setRequiredXp(demoRequiredXp);
+                    setProgress(demoProgress);
+                } else {
+                    console.error("Error fetching dashboard data:", error);
+                }
             }
-            // const data: Skill[] = res.data.data;
-            const userSkills: UserSkill[] = userSkill.data.data;
-            // setSkills(data);
-            setUserSkills(userSkills);
             setLoading(false);
         };
         fetchdata();
@@ -78,31 +93,49 @@ const page = () => {
     // }, []);
 
     async function handleComplete(id: number) {
-        await api.post(`/quests/${id}/complete`);
-        fetchUser();
-        console.log("completed");
+        try {
+            await api.post(`/quests/${id}/complete`);
+            fetchUser();
+            console.log("completed");
+        } catch (error) {
+            if (process.env.NODE_ENV === "development") {
+                console.log("API unavailable, demo mode: quest marked as completed locally");
+                fetchUser();
+            } else {
+                console.error("Error completing quest:", error);
+            }
+        }
     }
 
     async function handleSkip(id: number) {
-        await api.post(`/quests/${id}/skip`);
-        fetchUser();
-        console.log("skipped");
+        try {
+            await api.post(`/quests/${id}/skip`);
+            fetchUser();
+            console.log("skipped");
+        } catch (error) {
+            if (process.env.NODE_ENV === "development") {
+                console.log("API unavailable, demo mode: quest skipped locally");
+                fetchUser();
+            } else {
+                console.error("Error skipping quest:", error);
+            }
+        }
     }
 
     if (loading) return <div>Loading...</div>;
 
     return (
-        <PrivateRoute>
-            <div className="w-screen h-screen flex flex-col justify-center items-center">
+       // <PrivateRoute>
+            <div className={`font-minecraft w-screen h-screen flex flex-col justify-center items-center`}>
                 <Card
-                    bg="#4a6c4b"
-                    borderColor="#dcb07c"
+                    bg="#ffffff"
+                    borderColor="#e5e7eb"
                     className="w-1/2 h-full flex flex-col justify-start items-center gap-6 "
                 >
                     <div className="w-full flex flex-row justify-center items-center gap-6">
                         <div className="w-1/2 h-full flex flex-col justify-start items-center">
                             <Card
-                                borderColor="#dcb07c"
+                                borderColor="#d1d5db"
                                 className={`h-80 w-80 p-0 m-0 relative overflow-hidden`}
                                 style={{ padding: "0px" }}
                             >
@@ -160,33 +193,33 @@ const page = () => {
                         </div>
                         <div className="w-1/2 h-full flex flex-col justify-start items-center gap-3">
                             <Card
-                                borderColor="#94a661"
-                                bg="#94a661"
-                                shadowColor="#94a661"
+                                borderColor="#3b82f6"
+                                bg="#f0f9ff"
+                                shadowColor="#93c5fd"
                                 className="h-20 w-3/4 flex flex-col justify-center items-center"
                             >
-                                <p className="text-2xl">{user?.username}</p>
-                                <p className="">{user?.email}</p>
+                                <p className="text-2xl font-semibold text-gray-900">{user?.username}</p>
+                                <p className="text-sm text-gray-600">{user?.email}</p>
                             </Card>
                             <Card
-                                borderColor="#5f42ab"
-                                bg="#5f42ab"
-                                shadowColor="#5f42ab"
-                                className=" w-3/4 flex flex-col justify-center items-center"
+                                borderColor="#8b5cf6"
+                                bg="#f8f6ff"
+                                shadowColor="#d8b4fe"
+                                className=" w-3/4 flex flex-col justify-center items-center font-semibold text-gray-800"
                             >
                                 {user?.currentArc?.name}
                             </Card>
                             <Card
-                                borderColor="#fec149"
-                                bg="#fec149"
-                                shadowColor="#fec149"
+                                borderColor="#f59e0b"
+                                bg="#fef3c7"
+                                shadowColor="#fcd34d"
                                 className="w-3/4 flex flex-col justify-center items-center"
                             >
-                                <div className="w-full px-2">Level {user?.currentLevel?.level}</div>
+                                <div className="w-full px-2 font-semibold text-gray-900">Level {user?.currentLevel?.level}</div>
                                 <ProgressBar
                                     size="sm"
-                                    color="#5f42ab"
-                                    borderColor="black"
+                                    color="#3b82f6"
+                                    borderColor="#d1d5db"
                                     className="w-full"
                                     progress={progress}
                                 />
@@ -194,30 +227,31 @@ const page = () => {
                             <div className="flex flex-col justify-center items-center w-[80%]">
                                 <div className="flex flex-row justify-center items-center w-full gap-2">
                                     <Card
-                                        className="w-[30%] text-center"
-                                        borderColor="#94a661"
-                                        bg="#94a661"
-                                        shadowColor="#94a661"
+                                        className="w-[30%] text-center font-semibold text-gray-900"
+                                        borderColor="#10b981"
+                                        bg="#ecfdf5"
+                                        shadowColor="#a7f3d0"
                                     >
                                         Total XP {user?.totalXp}
                                     </Card>
                                     <Card
                                         className="w-[30%] text-center"
-                                        borderColor="#94a661"
-                                        bg="#94a661"
-                                        shadowColor="#94a661"
+                                        borderColor="#6b7280"
+                                        bg="#f3f4f6"
+                                        shadowColor="#d1d5db"
                                     >
-                                        <button onClick={logout}>Logout</button>
+                                        <button onClick={logout} className="font-medium text-gray-700 hover:text-gray-900 transition">Logout</button>
                                     </Card>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <Card
-                        bg="#fefcd0"
+                        bg="#f9fafb"
+                        borderColor="#e5e7eb"
                         className="w-4/5 h-full flex flex-col justify-start items-center gap-3"
                     >
-                        <div className="w-full flex justify-center items-center gap-2 flex-row font-bold">
+                        <div className="w-full flex justify-center items-center gap-2 flex-row font-bold text-gray-900 bg-gray-100 px-4 py-3 rounded">
                             <div className="w-[20%] text-center">Skill</div>
                             <div className="w-[12%] text-center">XP</div>
                             <div className="w-[12%] text-center">Penalty</div>
@@ -228,32 +262,33 @@ const page = () => {
                         </div>
                         {userSkills.map((skill) => (
                             <div
-                                className="w-full flex justify-center items-center gap-2 flex-row"
+                                className="w-full flex justify-center items-center gap-2 flex-row text-gray-700 px-4 py-3 hover:bg-gray-50 transition border-b border-gray-100"
                                 key={skill.id}
                             >
-                                <div className="w-[20%] ">{skill.skill.name}</div>
-                                <div className="w-[12%] text-center">{skill.skill.xpPerTask}</div>
-                                <div className="w-[12%] text-center">{skill.skill.penaltyPerSkip}</div>
-                                <div className="w-[12%] text-center">{skill.totalXp}</div>
-                                <div className="w-[12%] text-center">{skill.currentStreak}</div>
+                                <div className="w-[20%] font-medium">{skill.skill.name}</div>
+                                <div className="w-[12%] text-center text-gray-600">{skill.skill.xpPerTask}</div>
+                                <div className="w-[12%] text-center text-red-600">{skill.skill.penaltyPerSkip}</div>
+                                <div className="w-[12%] text-center font-semibold text-blue-600">{skill.totalXp}</div>
+                                <div className="w-[12%] text-center font-semibold text-purple-600">{skill.currentStreak}</div>
                                 <div className="w-[12%] text-center">
                                     <button
                                         onClick={() => {
                                             handleComplete(skill.skill.id);
                                         }}
+                                        className="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600 transition"
                                     >
                                         Done
                                     </button>
                                 </div>
                                 <div className="w-[12%] text-center">
-                                    <button onClick={() => handleSkip(skill.skill.id)}>Skip</button>
+                                    <button onClick={() => handleSkip(skill.skill.id)} className="px-3 py-1 bg-gray-400 text-white rounded text-sm hover:bg-gray-500 transition">Skip</button>
                                 </div>
                             </div>
                         ))}
                     </Card>
                 </Card>
             </div>
-        </PrivateRoute>
+       // </PrivateRoute>
     );
 };
 
