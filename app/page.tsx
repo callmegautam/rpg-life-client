@@ -29,7 +29,7 @@ export default function Home() {
                                 Fight Brave
                             </Button>
                         </Link>
-                        <Link href="https://github.com/rohitbytecode">
+                        <Link href="https://github.com/callmegautam">
                             <Button bg="#00cddb" textColor="#000000" borderColor="#000000" shadow="#0091ad">
                                 Github
                             </Button>

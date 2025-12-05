@@ -5,10 +5,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/axios";
 import { Card, ProgressBar } from "pixel-retroui";
 import Image from "next/image";
-import { Inter } from "next/font/google";
 import React, { useEffect, useState } from "react";
+import { demoUserSkills, demoRequiredXp, demoProgress } from "@/lib/demoSkills";
 
-const inter = Inter({ subsets: ["latin"], weight: ["400", "600"], display: "swap" });
+// Using CSS-only, removed import of fonts
 
 type Skill = {
     id: number;
@@ -73,64 +73,15 @@ const page = () => {
                 // setSkills(data);
                 setUserSkills(userSkills);
             } catch (error) {
-                // Fallback demo content when API fails
-                console.log("API unavailable, using demo content");
-                const demoSkills: UserSkill[] = [
-                    {
-                        id: 1,
-                        userId: 1,
-                        totalXp: 150,
-                        currentStreak: 5,
-                        bestStreak: 12,
-                        lastCompleted: new Date().toISOString(),
-                        skill: {
-                            id: 1,
-                            name: "Reading",
-                            frequency: "DAILY",
-                            category: "Learning",
-                            xpPerTask: 50,
-                            streakBonus: 10,
-                            penaltyPerSkip: 5,
-                        },
-                    },
-                    {
-                        id: 2,
-                        userId: 1,
-                        totalXp: 220,
-                        currentStreak: 8,
-                        bestStreak: 20,
-                        lastCompleted: new Date().toISOString(),
-                        skill: {
-                            id: 2,
-                            name: "Exercise",
-                            frequency: "DAILY",
-                            category: "Health",
-                            xpPerTask: 75,
-                            streakBonus: 15,
-                            penaltyPerSkip: 10,
-                        },
-                    },
-                    {
-                        id: 3,
-                        userId: 1,
-                        totalXp: 100,
-                        currentStreak: 3,
-                        bestStreak: 7,
-                        lastCompleted: new Date().toISOString(),
-                        skill: {
-                            id: 3,
-                            name: "Coding",
-                            frequency: "DAILY",
-                            category: "Development",
-                            xpPerTask: 100,
-                            streakBonus: 20,
-                            penaltyPerSkip: 15,
-                        },
-                    },
-                ];
-                setUserSkills(demoSkills);
-                setRequiredXp(1000);
-                setProgress(45);
+                // If we're in dev, it'll automatically use demo data
+                if (process.env.NODE_ENV === "development") {
+                    console.log("API unavailable, using demo content (development mode)");
+                    setUserSkills(demoUserSkills as any);
+                    setRequiredXp(demoRequiredXp);
+                    setProgress(demoProgress);
+                } else {
+                    console.error("Error fetching dashboard data:", error);
+                }
             }
             setLoading(false);
         };
@@ -147,8 +98,12 @@ const page = () => {
             fetchUser();
             console.log("completed");
         } catch (error) {
-            console.log("API unavailable, demo mode: quest marked as completed locally");
-            fetchUser();
+            if (process.env.NODE_ENV === "development") {
+                console.log("API unavailable, demo mode: quest marked as completed locally");
+                fetchUser();
+            } else {
+                console.error("Error completing quest:", error);
+            }
         }
     }
 
@@ -158,8 +113,12 @@ const page = () => {
             fetchUser();
             console.log("skipped");
         } catch (error) {
-            console.log("API unavailable, demo mode: quest skipped locally");
-            fetchUser();
+            if (process.env.NODE_ENV === "development") {
+                console.log("API unavailable, demo mode: quest skipped locally");
+                fetchUser();
+            } else {
+                console.error("Error skipping quest:", error);
+            }
         }
     }
 
@@ -167,7 +126,7 @@ const page = () => {
 
     return (
        // <PrivateRoute>
-            <div className={`${inter.className} w-screen h-screen flex flex-col justify-center items-center`}>
+            <div className={`font-minecraft w-screen h-screen flex flex-col justify-center items-center`}>
                 <Card
                     bg="#ffffff"
                     borderColor="#e5e7eb"

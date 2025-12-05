@@ -1,16 +1,32 @@
+/* Minecraft-style */
 @import "tailwindcss";
 
+@layer utilities {
+  .font-minecraft {
+    font-family:
+      "Press Start 2P",
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      "Segoe UI",
+      Roboto,
+      "Helvetica Neue",
+      Arial;
+    letter-spacing: 0.02em;
+  }
+}
+
 @keyframes dropdown-open {
-    0% {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0px);
-    }
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0px);
+  }
 }
 
 .animate-open {
-    animation: dropdown-open 0.2s ease-out forwards;
+  animation: dropdown-open 0.2s ease-out forwards;
 }
